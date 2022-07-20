@@ -3,7 +3,7 @@ class Vertice:
         self.id = id
         self.adj = adj
 
-def sem_pivot(r, p, x, triang):
+def bron_kerbosch(r, p, x, triang):
     if (len(p) == 0 and len(x) == 0):
         print("%d vertices:" % len(r), [max.id for max in r])
         triang += ((len(r)- 1) * (len(r) - 2)) / 2
@@ -12,12 +12,12 @@ def sem_pivot(r, p, x, triang):
         r_new = r + [v]
         p_new = [a for a in p if a.id in v.adj]
         x_new = [a for a in x if a.id in v.adj]
-        triang = sem_pivot(r_new, p_new, x_new, triang)
+        triang = bron_kerbosch(r_new, p_new, x_new, triang)
         p.remove(v)
         x.append(v)
     return triang
 
-def pivot(r, p, x):
+def bron_kerbosch_pivot(r, p, x):
     if (len(p) == 0 and len(x) == 0):
         print("%d vertices:" % len(r), [max.id for max in r])
         return
@@ -25,48 +25,52 @@ def pivot(r, p, x):
         r_new = r + [v]
         p_new = [a for a in p if a.id in v.adj]
         x_new = [a for a in x if a.id in v.adj]
-        pivot(r_new, p_new, x_new)
+        bron_kerbosch_pivot(r_new, p_new, x_new)
         p.remove(v)
         x.append(v)
 
-#Abre o arquivo e le
-file = open("soc-dolphins.mtx", "r")
-linhas = file.readlines()
 
-#Coloca os dados das arestas em total
-total = []
-for line in linhas:
-    if (line[0] != '%' and len(line.split(" ")) == 2):
-        total.append(line.split(" "))
-for a in total:
-    a[1] = a[1].strip()
+def read_graph(filename):
 
-#Organiza os vertices no grafo
-for a in total:
-    a[0] = int(a[0])
-    a[1] = int(a[1])
+    file = open(filename, "r")
+    linhas = file.readlines()
 
-grafo = []
-for i in range(1, 63):
-    v = Vertice(i, [])
-    grafo.append(v)
+    total = []
+    for line in linhas:
+        if (line[0] != '%' and len(line.split(" ")) == 2):
+            total.append(line.split(" "))
     for a in total:
-        if a[0] == i:
-            grafo[-1].adj.append(a[1])
-        elif a[1] == i:
-            grafo[-1].adj.append(a[0])
+        a[1] = a[1].strip()
 
+    for a in total:
+        a[0] = int(a[0])
+        a[1] = int(a[1])
+
+    grafo = []
+    for i in range(1, 63):
+        v = Vertice(i, [])
+        grafo.append(v)
+        for a in total:
+            if a[0] == i:
+                grafo[-1].adj.append(a[1])
+            elif a[1] == i:
+                grafo[-1].adj.append(a[0])
+
+    return grafo
+
+
+grafo = read_graph("soc-dolphins.mtx")
 print("Lista de adjacencia:")
 for v in grafo:
     print(v.id, v.adj)
 print("\n")
 
 print("Sem pivotamento:")
-triang = sem_pivot([], grafo, [], 0)
+triang = bron_kerbosch([], grafo, [], 0)
 print("\n")
 
 print("Com pivotamento:")
-pivot([], grafo, [])
+bron_kerbosch_pivot([], grafo, [])
 print("\n")
 
 poss_triangulo = 0
